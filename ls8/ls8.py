@@ -4,8 +4,9 @@
 
 import sys
 from cpu import *
+f = open('./examples/mult.ls8','r')
 
 cpu = CPU()
 
-cpu.load()
+cpu.load(f.readlines())
 cpu.run()

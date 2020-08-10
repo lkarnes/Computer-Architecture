@@ -1,39 +1,38 @@
 """CPU functionality."""
+# 10000010 # LDI R0,8
+# 00000000
+# 00001000
+# 10000010 # LDI R1,9
+# 00000001
+# 00001001
+# 10100010 # MUL R0,R1
+# 00000000
+# 00000001
+# 01000111 # PRN R0
+# 00000000
+# 00000001 # HLT
 
 import sys
-
-HLT = 0b00000001
-LDI = 0b10000010
-PRN = 0b01000111
+HLT =  1
+LDI =  130
+PRN =  71
+MULT = 162
 
 class CPU:
     """Main CPU class."""
 
     def __init__(self):
-        self.ram = {}
+        self.ram = [0] * 256
         self.pc = 0
         self.running = False
         self.reg = [None] * 6
 
-    def load(self):
+    def load(self, program):
         """Load a program into memory."""
-
         address = 0
 
-        # For now, we've just hardcoded a program:
-
-        program = [
-            # From print8.ls8
-            0b10000010, # LDI R0,8
-            0b00000000,
-            0b00001000,
-            0b01000111, # PRN R0
-            0b00000000,
-            0b00000001, # HLT
-        ]
-
         for instruction in program:
-            self.ram[address] = instruction
+            self.ram[address] = int(instruction,2)
             address += 1
             
     def ram_write(self, operand_a,operand_b):
@@ -70,7 +69,6 @@ class CPU:
         for i in range(8):
             print(" %02X" % self.reg[i], end='')
 
-        print()
 
     def run(self):
         self.running = True
@@ -87,5 +85,10 @@ class CPU:
                 operand_b = self.ram[self.pc + 2]
                 self.ram_write(operand_a, operand_b)
                 self.pc += 3
-                
+            if command == MULT:
+                operand_a = self.reg[self.ram[self.pc + 1]]
+                operand_b = self.reg[self.ram[self.pc + 2]]
+                self.reg[self.ram[self.pc+1]] = operand_a * operand_b
+                self.reg[self.ram[self.pc+2]] = None
+                self.pc += 3                
                          
