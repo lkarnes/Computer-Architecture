@@ -1,22 +1,42 @@
-"""CPU functionality."""
-# 10000010 # LDI R0,8
-# 00000000
-# 00001000
-# 10000010 # LDI R1,9
-# 00000001
-# 00001001
-# 10100010 # MUL R0,R1
+# """CPU functionality."""
+# 10000010 # LDI R0,1
 # 00000000
 # 00000001
+# 10000010 # LDI R1,2
+# 00000001
+# 00000010
+# 01000101 # PUSH R0
+# 00000000
+# 01000101 # PUSH R1
+# 00000001
+# 10000010 # LDI R0,3
+# 00000000
+# 00000011
+# 01000110 # POP R0
+# 00000000
 # 01000111 # PRN R0
 # 00000000
+# 10000010 # LDI R0,4
+# 00000000
+# 00000100
+# 01000101 # PUSH R0
+# 00000000
+# 01000110 # POP R2
+# 00000010
+# 01000110 # POP R1
+# 00000001
+# 01000111 # PRN R2
+# 00000010
+# 01000111 # PRN R1
+# 00000001
 # 00000001 # HLT
-
 import sys
-HLT =  1
-LDI =  130
-PRN =  71
+HLT  = 1
+LDI  = 130
+PRN  = 71
 MULT = 162
+PUSH = 69
+POP  = 70
 
 class CPU:
     """Main CPU class."""
@@ -25,7 +45,8 @@ class CPU:
         self.ram = [0] * 256
         self.pc = 0
         self.running = False
-        self.reg = [None] * 6
+        self.reg = [None] * 9
+        self.tos = 9
 
     def load(self, program):
         """Load a program into memory."""
@@ -41,7 +62,6 @@ class CPU:
     def ram_read(self):
         index = self.ram[self.pc + 1]
         print(self.reg[index])
-        
     def alu(self, op, reg_a, reg_b):
         """ALU operations."""
 
@@ -78,6 +98,7 @@ class CPU:
                 self.running = False
                 self.pc = 0
             if command == PRN:
+                
                 self.ram_read()
                 self.pc += 2
             if command == LDI:
@@ -90,5 +111,14 @@ class CPU:
                 operand_b = self.reg[self.ram[self.pc + 2]]
                 self.reg[self.ram[self.pc+1]] = operand_a * operand_b
                 self.reg[self.ram[self.pc+2]] = None
-                self.pc += 3                
-                         
+                self.pc += 3    
+            if command == PUSH:
+                self.tos -= 1
+                self.reg[self.tos] = self.reg[self.ram[self.pc + 1]]
+                self.pc += 2
+            if command == POP:            
+                popped_value = self.reg[self.tos]
+                register_number = self.ram[self.pc + 1]
+                self.reg[register_number] = popped_value
+                self.tos += 1
+                self.pc += 2
