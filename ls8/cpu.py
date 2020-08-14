@@ -1,35 +1,35 @@
-# """CPU functionality."""
-# 10000010 # LDI R0,1
-# 00000000
+  
+# 10000010 # LDI R1,MULT2PRINT
 # 00000001
-# 10000010 # LDI R1,2
-# 00000001
-# 00000010
-# 01000101 # PUSH R0
+# 00011000
+# 10000010 # LDI R0,10
 # 00000000
-# 01000101 # PUSH R1
+# 00001010
+# 01010000 # CALL R1
 # 00000001
-# 10000010 # LDI R0,3
+# 10000010 # LDI R0,15
 # 00000000
-# 00000011
-# 01000110 # POP R0
+# 00001111
+# 01010000 # CALL R1
+# 00000001
+# 10000010 # LDI R0,18
+# 00000000
+# 00010010
+# 01010000 # CALL R1
+# 00000001
+# 10000010 # LDI R0,30
+# 00000000
+# 00011110
+# 01010000 # CALL R1
+# 00000001
+# 00000001 # HLT
+# # MULT2PRINT (address 24):
+# 10100000 # ADD R0,R0
+# 00000000
 # 00000000
 # 01000111 # PRN R0
 # 00000000
-# 10000010 # LDI R0,4
-# 00000000
-# 00000100
-# 01000101 # PUSH R0
-# 00000000
-# 01000110 # POP R2
-# 00000010
-# 01000110 # POP R1
-# 00000001
-# 01000111 # PRN R2
-# 00000010
-# 01000111 # PRN R1
-# 00000001
-# 00000001 # HLT
+# 00010001 # RET
 import sys
 HLT  = 1
 LDI  = 130
@@ -37,6 +37,8 @@ PRN  = 71
 MULT = 162
 PUSH = 69
 POP  = 70
+CALL = 80
+RET = 17
 
 class CPU:
     """Main CPU class."""
@@ -122,3 +124,14 @@ class CPU:
                 self.reg[register_number] = popped_value
                 self.tos += 1
                 self.pc += 2
+            if command == CALL:
+                next_inst = pc + 2
+                self.tos -= 1
+                self.ram[self.tos] = next_inst
+                reg_address = self.ram[self.pc + 1]
+                address_to_jump_to = self.reg[reg_address]
+                self.pc = address_to_jump_to
+            if command == RET:
+                return_address = self.ram[self.tos]
+                self.tos += 1
+                self.pc = return_address
