@@ -39,6 +39,7 @@ PUSH = 69
 POP  = 70
 CALL = 80
 RET = 17
+ADD = 160
 
 class CPU:
     """Main CPU class."""
@@ -100,7 +101,6 @@ class CPU:
                 self.running = False
                 self.pc = 0
             if command == PRN:
-                
                 self.ram_read()
                 self.pc += 2
             if command == LDI:
@@ -108,12 +108,17 @@ class CPU:
                 operand_b = self.ram[self.pc + 2]
                 self.ram_write(operand_a, operand_b)
                 self.pc += 3
+            if command == ADD:
+                operand_a = self.reg[self.ram[self.pc + 1]]
+                operand_b = self.reg[self.ram[self.pc + 2]]
+                self.reg[self.ram[self.pc + 1]] += operand_b
+                self.pc += 3
             if command == MULT:
                 operand_a = self.reg[self.ram[self.pc + 1]]
                 operand_b = self.reg[self.ram[self.pc + 2]]
                 self.reg[self.ram[self.pc+1]] = operand_a * operand_b
                 self.reg[self.ram[self.pc+2]] = None
-                self.pc += 3    
+                self.pc += 3
             if command == PUSH:
                 self.tos -= 1
                 self.reg[self.tos] = self.reg[self.ram[self.pc + 1]]
@@ -125,13 +130,14 @@ class CPU:
                 self.tos += 1
                 self.pc += 2
             if command == CALL:
-                next_inst = pc + 2
+                next_inst = self.pc + 2
                 self.tos -= 1
-                self.ram[self.tos] = next_inst
+                self.reg[self.tos] = next_inst
                 reg_address = self.ram[self.pc + 1]
                 address_to_jump_to = self.reg[reg_address]
                 self.pc = address_to_jump_to
+                print(self.reg)
             if command == RET:
-                return_address = self.ram[self.tos]
+                return_address = self.reg[self.tos]
                 self.tos += 1
                 self.pc = return_address
