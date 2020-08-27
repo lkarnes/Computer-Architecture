@@ -1,35 +1,82 @@
-  
-# 10000010 # LDI R1,MULT2PRINT
-# 00000001
-# 00011000
 # 10000010 # LDI R0,10
 # 00000000
 # 00001010
-# 01010000 # CALL R1
+# 10000010 # LDI R1,20
 # 00000001
-# 10000010 # LDI R0,15
+# 00010100
+# 10000010 # LDI R2,TEST1
+# 00000010
+# 00010011
+# 10100111 # CMP R0,R1
 # 00000000
-# 00001111
-# 01010000 # CALL R1
 # 00000001
-# 10000010 # LDI R0,18
+# 01010101 # JEQ R2
+# 00000010
+# 10000010 # LDI R3,1
+# 00000011
+# 00000001
+# 01000111 # PRN R3
+# 00000011
+# # TEST1 (address 19):
+# 10000010 # LDI R2,TEST2
+# 00000010
+# 00100000
+# 10100111 # CMP R0,R1
 # 00000000
-# 00010010
-# 01010000 # CALL R1
 # 00000001
-# 10000010 # LDI R0,30
+# 01010110 # JNE R2
+# 00000010
+# 10000010 # LDI R3,2
+# 00000011
+# 00000010
+# 01000111 # PRN R3
+# 00000011
+# # TEST2 (address 32):
+# 10000010 # LDI R1,10
+# 00000001
+# 00001010
+# 10000010 # LDI R2,TEST3
+# 00000010
+# 00110000
+# 10100111 # CMP R0,R1
 # 00000000
-# 00011110
-# 01010000 # CALL R1
 # 00000001
+# 01010101 # JEQ R2
+# 00000010
+# 10000010 # LDI R3,3
+# 00000011
+# 00000011
+# 01000111 # PRN R3
+# 00000011
+# # TEST3 (address 48):
+# 10000010 # LDI R2,TEST4
+# 00000010
+# 00111101
+# 10100111 # CMP R0,R1
+# 00000000
+# 00000001
+# 01010110 # JNE R2
+# 00000010
+# 10000010 # LDI R3,4
+# 00000011
+# 00000100
+# 01000111 # PRN R3
+# 00000011
+# # TEST4 (address 61):
+# 10000010 # LDI R3,5
+# 00000011
+# 00000101
+# 01000111 # PRN R3
+# 00000011
+# 10000010 # LDI R2,TEST5
+# 00000010
+# 01001001
+# 01010100 # JMP R2
+# 00000010
+# 01000111 # PRN R3
+# 00000011
+# # TEST5 (address 73):
 # 00000001 # HLT
-# # MULT2PRINT (address 24):
-# 10100000 # ADD R0,R0
-# 00000000
-# 00000000
-# 01000111 # PRN R0
-# 00000000
-# 00010001 # RET
 import sys
 HLT  = 1
 LDI  = 130
@@ -40,7 +87,10 @@ POP  = 70
 CALL = 80
 RET = 17
 ADD = 160
-
+JNE = 86
+JMP = 84
+JEQ = 85
+CMP = 167
 class CPU:
     """Main CPU class."""
 
@@ -100,36 +150,36 @@ class CPU:
             if command == HLT:
                 self.running = False
                 self.pc = 0
-            if command == PRN:
+            elif command == PRN:
                 self.ram_read()
                 self.pc += 2
-            if command == LDI:
+            elif command == LDI:
                 operand_a = self.ram[self.pc + 1]
                 operand_b = self.ram[self.pc + 2]
                 self.ram_write(operand_a, operand_b)
                 self.pc += 3
-            if command == ADD:
+            elif command == ADD:
                 operand_a = self.reg[self.ram[self.pc + 1]]
                 operand_b = self.reg[self.ram[self.pc + 2]]
                 self.reg[self.ram[self.pc + 1]] += operand_b
                 self.pc += 3
-            if command == MULT:
+            elif command == MULT:
                 operand_a = self.reg[self.ram[self.pc + 1]]
                 operand_b = self.reg[self.ram[self.pc + 2]]
                 self.reg[self.ram[self.pc+1]] = operand_a * operand_b
                 self.reg[self.ram[self.pc+2]] = None
                 self.pc += 3
-            if command == PUSH:
+            elif command == PUSH:
                 self.tos -= 1
                 self.reg[self.tos] = self.reg[self.ram[self.pc + 1]]
                 self.pc += 2
-            if command == POP:            
+            elif command == POP:            
                 popped_value = self.reg[self.tos]
                 register_number = self.ram[self.pc + 1]
                 self.reg[register_number] = popped_value
                 self.tos += 1
                 self.pc += 2
-            if command == CALL:
+            elif command == CALL:
                 next_inst = self.pc + 2
                 self.tos -= 1
                 self.reg[self.tos] = next_inst
@@ -137,7 +187,21 @@ class CPU:
                 address_to_jump_to = self.reg[reg_address]
                 self.pc = address_to_jump_to
                 print(self.reg)
-            if command == RET:
+            elif command == RET:
                 return_address = self.reg[self.tos]
                 self.tos += 1
                 self.pc = return_address
+            elif command == CMP:
+                operand_a = self.reg[self.ram[self.pc + 1]]
+                operand_b = self.reg[self.ram[self.pc + 2]]
+                jump = self.ram[self.pc+3]
+                if jump == JEQ and operand_a == operand_b:
+                    self.pc = self.reg[self.ram[self.pc+4]]
+                elif jump == JNE and operand_a != operand_b:
+                    self.pc = self.reg[self.ram[self.pc+4]]
+                else:
+                    self.pc += 5
+            elif command == JMP:
+                 self.pc = self.reg[self.ram[self.pc+1]]
+            else:
+                self.pc += 1

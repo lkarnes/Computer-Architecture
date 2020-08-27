@@ -4,7 +4,7 @@
 
 import sys
 from cpu import *
-f = open('./examples/stack.ls8','r')
+f = open('./examples/sctest.ls8','r')
 
 cpu = CPU()
 
